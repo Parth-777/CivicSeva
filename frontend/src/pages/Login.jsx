@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom'
+  import { useNavigate } from 'react-router-dom'
 import InnerNav from '../components/ui/InnerNav'
 
 export default function Login() {
@@ -16,7 +16,7 @@ export default function Login() {
           </div>
           <div className="flex flex-col gap-4">
             {[
-              { icon: '👤', title: 'Citizen', desc: 'Report a civic issue in your area', to: '/categories', bg: 'rgba(26,158,143,.12)' },
+              { icon: '👤', title: 'Citizen', desc: 'Report a civic issue in your area',to: '/citizen-login', bg: 'rgba(26,158,143,.12)' },
               { icon: '🏛️', title: 'Government Official', desc: 'Login to manage & resolve submitted issues', to: '/gov-login', bg: '#f0f1f3' },
             ].map((role) => (
               <button
