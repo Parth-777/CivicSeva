@@ -3,9 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { PRIORITY_COLORS } from '../data/reportStore'
 import StatusBadge from '../components/ui/StatusBadge'
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3100'
-
-// const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000'
+const API_BASE_URL = import.meta.env.VITE_API_URL
 
 // ── Leaflet is loaded via CDN in index.html (or injected below dynamically)
 // Add these to your index.html <head>:

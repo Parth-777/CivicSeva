@@ -2,9 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import StatusBadge from '../components/ui/StatusBadge'
 
-// const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000'
-
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3100'
+const API_BASE_URL = import.meta.env.VITE_API_URL
 
 // These 4 match exactly what the ML pipeline classifies complaints into
 // (see gemini_pipeline.py's Department enum) -- keep these in sync if that

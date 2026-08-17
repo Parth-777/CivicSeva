@@ -2,8 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import InnerNav from '../components/ui/InnerNav'
 
-const API_URL =
-  import.meta.env.VITE_API_URL || 'http://localhost:3100'
+const API_URL = import.meta.env.VITE_API_URL
 
 const MAP_CENTER = [19.076, 72.8777]
 

@@ -4,7 +4,7 @@ import InnerNav from '../components/ui/InnerNav'
 import { categories } from '../data/categories'
 import { useApp } from '../context/AppContext'
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3100'
+const API_URL = import.meta.env.VITE_API_URL
 
 export default function Categories() {
   const navigate = useNavigate()

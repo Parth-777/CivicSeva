@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import InnerNav from '../components/ui/InnerNav'
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3100'
+const API_URL = import.meta.env.VITE_API_URL
 
 export default function TrackComplaint() {
   const [trackId, setTrackId] = useState('')

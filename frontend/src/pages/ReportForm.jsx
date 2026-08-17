@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import InnerNav from '../components/ui/InnerNav'
 import { useApp } from '../context/AppContext'
 
+const API_URL = import.meta.env.VITE_API_URL
+
 export default function ReportForm() {
   const navigate = useNavigate()
   const { selectedCategory, addReport } = useApp()
@@ -127,7 +129,7 @@ export default function ReportForm() {
       formData.append('image', photo)
 
       const response = await fetch(
-        'http://localhost:3100/api/complaints/register',
+        `${API_URL}/api/complaints/register`,
         {
           method: 'POST',
           body: formData,

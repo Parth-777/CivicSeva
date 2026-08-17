@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import InnerNav from '../components/ui/InnerNav'
 import { useApp } from '../context/AppContext'
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3100'
+const API_URL = import.meta.env.VITE_API_URL
 
 // Mumbai — matches the citizen-services context. Swap if you want a
 // different default city, or wire this up to the user's geolocation.
@@ -300,7 +300,7 @@ export default function CitizenLogin() {
 
         // IMPORTANT:
         // This allows the browser to receive/store
-        // the civicseva_session cookie from localhost:3100.
+        // the civicseva_session cookie from the backend.
         credentials: 'include',
 
         headers: {

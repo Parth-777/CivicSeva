@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 
-// Point this at your Next.js API origin (adjust if you already have an env var for it elsewhere)
-const API_BASE = 'http://localhost:3100'
+const API_URL = import.meta.env.VITE_API_URL
 const POLL_INTERVAL_MS = 20000
 
 /* ─────────────────────────────────────────────
@@ -256,7 +255,7 @@ export default function ChaosMap() {
 
     async function fetchReports() {
       try {
-        const res = await fetch(`${API_BASE}/api/complaints/map`, {
+        const res = await fetch(`${API_URL}/api/complaints/map`, {
           credentials: 'include',
         })
 

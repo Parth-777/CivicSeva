@@ -4,6 +4,7 @@ import { useApp } from '../context/AppContext'
 
 //const WHATSAPP = '919999999999'
 const WHATSAPP = '14155238886'
+const API_URL = import.meta.env.VITE_API_URL
 
 export default function Channel() {
   const navigate = useNavigate()
@@ -25,7 +26,7 @@ export default function Channel() {
   const handleWhatsApp = async () => {
   try {
     const response = await fetch(
-      'http://localhost:3100/api/whatsapp/session',
+      `${API_URL}/api/whatsapp/session`,
       {
         method: 'POST',
         credentials: 'include',
