@@ -25,7 +25,7 @@ export default function InnerNav({ backTo, backLabel = '← Back' }) {
     >
       <div className="flex items-center gap-2 font-sora font-bold text-xl" style={{ color: 'var(--fg)' }}>
         <LogoIcon />
-        CitySync
+        CivicSeva
       </div>
       <button
         onClick={() => navigate(backTo)}

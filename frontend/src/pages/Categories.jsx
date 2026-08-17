@@ -1,26 +1,162 @@
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import InnerNav from '../components/ui/InnerNav'
 import { categories } from '../data/categories'
 import { useApp } from '../context/AppContext'
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3100'
+
 export default function Categories() {
   const navigate = useNavigate()
   const { setSelectedCategory } = useApp()
-  const hov = (on) => document.body.classList.toggle('cursor-hover', on)
 
+  const [checkingSession, setCheckingSession] = useState(true)
+
+  const hov = (on) =>
+    document.body.classList.toggle('cursor-hover', on)
+
+  // --------------------------------------------------
+  // CHECK LOGIN SESSION
+  // --------------------------------------------------
+  useEffect(() => {
+    const checkSession = async () => {
+      try {
+        const response = await fetch(
+          `${API_URL}/api/auth/session`,
+          {
+            method: 'GET',
+            credentials: 'include',
+          }
+        )
+
+        if (!response.ok) {
+          // No session / expired session
+          navigate('/citizen-login', {
+            replace: true,
+          })
+          return
+        }
+
+        const data = await response.json()
+
+        if (!data.authenticated) {
+          navigate('/citizen-login', {
+            replace: true,
+          })
+          return
+        }
+
+        // Session is valid
+        setCheckingSession(false)
+      } catch (error) {
+        console.error('Session check error:', error)
+
+        navigate('/citizen-login', {
+          replace: true,
+        })
+      }
+    }
+
+    checkSession()
+  }, [navigate])
+
+  // --------------------------------------------------
+  // CATEGORY SELECTION
+  // --------------------------------------------------
   const handleSelect = (cat) => {
     setSelectedCategory(cat)
     navigate('/channel')
   }
 
+  // --------------------------------------------------
+  // WAIT WHILE SESSION IS BEING VERIFIED
+  // --------------------------------------------------
+  if (checkingSession) {
+    return (
+      <div
+        style={{
+          minHeight: '100vh',
+          background: 'var(--bg)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          flexDirection: 'column',
+          gap: '1rem',
+        }}
+      >
+        <div
+          style={{
+            fontFamily: "'Sora', sans-serif",
+            fontWeight: 700,
+            fontSize: '1.1rem',
+          }}
+        >
+          Checking your session...
+        </div>
+
+        <div
+          style={{
+            color: 'var(--muted)',
+            fontSize: '0.9rem',
+          }}
+        >
+          Please wait
+        </div>
+      </div>
+    )
+  }
+
+  // --------------------------------------------------
+  // AUTHENTICATED USER → SHOW DASHBOARD
+  // --------------------------------------------------
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', flexDirection: 'column' }}>
+    <div
+      style={{
+        minHeight: '100vh',
+        background: 'var(--bg)',
+        display: 'flex',
+        flexDirection: 'column',
+      }}
+    >
       <InnerNav backTo="/login" />
-      <div style={{ padding: '2.5rem 1.5rem', flex: 1 }}>
-        <div style={{ maxWidth: 1100, margin: '0 auto' }}>
-          <div style={{ marginBottom: '2rem', animation: 'fadeIn 0.5s ease-out forwards' }}>
-            <h2 style={{ fontFamily: "'Sora',sans-serif", fontSize: '1.875rem', fontWeight: 800, marginBottom: '0.4rem' }}>What's the issue?</h2>
-            <p style={{ color: 'var(--muted)', fontSize: '0.95rem' }}>Select the category that best describes your problem.</p>
+
+      <div
+        style={{
+          padding: '2.5rem 1.5rem',
+          flex: 1,
+        }}
+      >
+        <div
+          style={{
+            maxWidth: 1100,
+            margin: '0 auto',
+          }}
+        >
+          <div
+            style={{
+              marginBottom: '2rem',
+              animation: 'fadeIn 0.5s ease-out forwards',
+            }}
+          >
+            <h2
+              style={{
+                fontFamily: "'Sora',sans-serif",
+                fontSize: '1.875rem',
+                fontWeight: 800,
+                marginBottom: '0.4rem',
+              }}
+            >
+              What's the issue?
+            </h2>
+
+            <p
+              style={{
+                color: 'var(--muted)',
+                fontSize: '0.95rem',
+              }}
+            >
+              Select the category that best describes your problem.
+            </p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -29,30 +165,107 @@ export default function Categories() {
                 key={cat.id}
                 onClick={() => handleSelect(cat)}
                 style={{
-                  background: 'none', border: 'none', padding: 0, textAlign: 'left', cursor: 'none',
+                  background: 'none',
+                  border: 'none',
+                  padding: 0,
+                  textAlign: 'left',
+                  cursor: 'none',
                   animation: `fadeIn 0.5s ease-out ${i * 80}ms both`,
                 }}
-                onMouseEnter={() => hov(true)} onMouseLeave={() => hov(false)}
+                onMouseEnter={() => hov(true)}
+                onMouseLeave={() => hov(false)}
               >
                 <div
-                  style={{ background: 'var(--card)', border: '1.5px solid var(--border)', borderRadius: '1rem', overflow: 'hidden', boxShadow: '0 4px 24px rgba(14,17,23,0.08)', transition: 'all 0.3s' }}
+                  style={{
+                    background: 'var(--card)',
+                    border: '1.5px solid var(--border)',
+                    borderRadius: '1rem',
+                    overflow: 'hidden',
+                    boxShadow:
+                      '0 4px 24px rgba(14,17,23,0.08)',
+                    transition: 'all 0.3s',
+                  }}
                   className="hover:-translate-y-1 hover:shadow-card-lg"
-                  onMouseEnter={(e) => (e.currentTarget.style.borderColor = 'var(--primary)')}
-                  onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'var(--border)')}
+                  onMouseEnter={(e) =>
+                    (e.currentTarget.style.borderColor =
+                      'var(--primary)')
+                  }
+                  onMouseLeave={(e) =>
+                    (e.currentTarget.style.borderColor =
+                      'var(--border)')
+                  }
                 >
-                  <div style={{ height: 140, overflow: 'hidden' }}>
-                    <img src={cat.image} alt={cat.title} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.4s' }} loading="lazy"
-                      onMouseEnter={(e) => (e.target.style.transform = 'scale(1.05)')}
-                      onMouseLeave={(e) => (e.target.style.transform = 'scale(1)')}
+                  <div
+                    style={{
+                      height: 140,
+                      overflow: 'hidden',
+                    }}
+                  >
+                    <img
+                      src={cat.image}
+                      alt={cat.title}
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                        transition: 'transform 0.4s',
+                      }}
+                      loading="lazy"
+                      onMouseEnter={(e) =>
+                        (e.target.style.transform = 'scale(1.05)')
+                      }
+                      onMouseLeave={(e) =>
+                        (e.target.style.transform = 'scale(1)')
+                      }
                     />
                   </div>
-                  <div style={{ padding: '1.25rem 1.4rem' }}>
+
+                  <div
+                    style={{
+                      padding: '1.25rem 1.4rem',
+                    }}
+                  >
                     <div className="flex items-center gap-3 mb-2">
-                      <span style={{ fontSize: '1.5rem' }}>{cat.icon}</span>
-                      <span style={{ fontFamily: "'Sora',sans-serif", fontWeight: 700, fontSize: '1rem', color: 'var(--fg)' }}>{cat.title}</span>
+                      <span
+                        style={{
+                          fontSize: '1.5rem',
+                        }}
+                      >
+                        {cat.icon}
+                      </span>
+
+                      <span
+                        style={{
+                          fontFamily: "'Sora',sans-serif",
+                          fontWeight: 700,
+                          fontSize: '1rem',
+                          color: 'var(--fg)',
+                        }}
+                      >
+                        {cat.title}
+                      </span>
                     </div>
-                    <div style={{ fontSize: '0.83rem', color: 'var(--muted)', marginBottom: '0.75rem', lineHeight: 1.5 }}>{cat.description}</div>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--primary)', fontWeight: 600 }}>→ {cat.department}</div>
+
+                    <div
+                      style={{
+                        fontSize: '0.83rem',
+                        color: 'var(--muted)',
+                        marginBottom: '0.75rem',
+                        lineHeight: 1.5,
+                      }}
+                    >
+                      {cat.description}
+                    </div>
+
+                    <div
+                      style={{
+                        fontSize: '0.75rem',
+                        color: 'var(--primary)',
+                        fontWeight: 600,
+                      }}
+                    >
+                      → {cat.department}
+                    </div>
                   </div>
                 </div>
               </button>

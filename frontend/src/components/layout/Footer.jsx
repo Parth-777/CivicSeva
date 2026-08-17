@@ -11,7 +11,7 @@ export default function Footer() {
       </p>
       <p>Civic Issue Reporting Platform · Making cities better, one report at a time.</p>
       <p style={{ marginTop: '0.5rem', fontSize: '0.78rem', opacity: 0.5 }}>
-        © 2026 CitySync. All rights reserved.
+        © 2026 CivicSeva. All rights reserved.
       </p>
     </footer>
   )

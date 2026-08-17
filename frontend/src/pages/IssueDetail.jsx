@@ -1,8 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { useApp } from '../context/AppContext'
-import { PRIORITY_MAP, PRIORITY_COLORS } from '../data/reportStore'
+import { PRIORITY_COLORS } from '../data/reportStore'
 import StatusBadge from '../components/ui/StatusBadge'
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3100'
+
+// const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000'
 
 // ── Leaflet is loaded via CDN in index.html (or injected below dynamically)
 // Add these to your index.html <head>:
@@ -412,19 +415,86 @@ function LiveMap({ location, reportId }) {
 export default function IssueDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { reports, updateReportStatus, activeDept } = useApp()
   const hov = (on) => document.body.classList.toggle('cursor-hover', on)
 
-  const r = reports.find((x) => x.id === Number(id))
-  if (!r) {
-    navigate('/login')
-    return null
+  const [complaint, setComplaint] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [fetchError, setFetchError] = useState(null)
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function fetchComplaint() {
+      setLoading(true)
+      setFetchError(null)
+      try {
+       const res = await fetch(`${API_BASE_URL}/api/complaints/${id}`, {
+  credentials: 'include',
+})
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}))
+          throw new Error(data.message || 'Complaint not found')
+        }
+        const data = await res.json()
+        if (!cancelled) setComplaint(data.complaint)
+      } catch (err) {
+        if (!cancelled) setFetchError(err.message)
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    }
+
+    fetchComplaint()
+    return () => { cancelled = true }
+  }, [id])
+
+  if (loading) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--muted)', fontFamily: "'Sora',sans-serif" }}>
+        Loading complaint...
+      </div>
+    )
   }
 
-  const priority = PRIORITY_MAP[r.categoryId] || 'Medium'
-  const priColor = PRIORITY_COLORS[priority]
-  const deptKey = (activeDept || '').toLowerCase()
-  const backTo = activeDept ? `/dashboard/${deptKey}` : '/login'
+  if (fetchError || !complaint) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '1rem', color: 'var(--muted)', fontFamily: "'Sora',sans-serif" }}>
+        <div>⚠ {fetchError || 'Complaint not found'}</div>
+        <button onClick={() => navigate(-1)} style={{ padding: '0.5rem 1.2rem', border: '1.5px solid var(--border)', borderRadius: '9999px', background: 'var(--card)', cursor: 'none' }}>
+          Go back
+        </button>
+      </div>
+    )
+  }
+
+  // Map the actual complaint schema fields to what this page displays.
+  // NOTE: status is only "pending"/"complete" in the schema right now --
+  // "In Progress" has no backend equivalent yet, so it's shown here but
+  // the Mark-as buttons don't persist anywhere until a PATCH endpoint exists.
+  const r = {
+    id: complaint._id,
+    title: complaint.issueType,
+    icon: '📋',
+    department: complaint.issueType, // no separate department field in schema yet
+    description: complaint.description,
+    location: complaint.address,
+    photo: complaint.imageUrl,
+    phone: complaint.phoneNumber,
+    status: complaint.status === 'complete' ? 'Resolved' : 'Pending',
+    date: complaint.createdAt ? new Date(complaint.createdAt).toISOString().slice(0, 10) : '',
+    channel: 'Website',
+  }
+
+  const priorityLabel = complaint.severity
+    ? complaint.severity.charAt(0).toUpperCase() + complaint.severity.slice(1)
+    : 'Medium'
+  const priColor = PRIORITY_COLORS[priorityLabel] || PRIORITY_COLORS.Medium
+  const backTo = '/dashboard' // TODO: revisit once department-based dashboard routing is finalized
+
+  // Placeholder until a real PATCH /api/complaints/:id/status endpoint exists.
+  const updateReportStatus = (complaintId, newStatus) => {
+    console.warn(`Status update not wired to backend yet: ${complaintId} -> ${newStatus}`)
+  }
 
   const LogoIcon = () => (
     <div style={{ width: '2rem', height: '2rem', background: 'var(--fg)', borderRadius: '0.5rem' }} className="flex items-center justify-center flex-shrink-0">
@@ -441,7 +511,7 @@ export default function IssueDetail() {
       <div style={{ background: 'var(--card)', borderBottom: '1.5px solid var(--border)', padding: '1rem 1.75rem', position: 'sticky', top: 0, zIndex: 20 }} className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <LogoIcon />
-          <span style={{ fontFamily: "'Sora',sans-serif", fontWeight: 800, fontSize: '1.1rem', color: 'var(--fg)' }}>CitySync</span>
+          <span style={{ fontFamily: "'Sora',sans-serif", fontWeight: 800, fontSize: '1.1rem', color: 'var(--fg)' }}>CivicSeva</span>
         </div>
         <button
           onClick={() => navigate(backTo)}
@@ -463,7 +533,7 @@ export default function IssueDetail() {
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <rect x="3" y="3" width="18" height="18" rx="2" /><path d="M3 9h18M9 21V9" />
               </svg>
-              # CMP-2025-{String(r.id).padStart(4, '0')}
+              # {r.id}
             </div>
             <StatusBadge status={r.status} />
           </div>
@@ -480,7 +550,7 @@ export default function IssueDetail() {
                 Priority{' '}
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', padding: '0.18rem 0.6rem', borderRadius: '9999px', fontSize: '0.72rem', fontWeight: 700, fontFamily: "'Sora',sans-serif", background: `${priColor}20`, color: priColor, border: `1px solid ${priColor}40`, marginLeft: '0.25rem' }}>
                   <span style={{ width: 7, height: 7, borderRadius: '50%', background: priColor, display: 'inline-block' }} />
-                  {priority}
+                  {priorityLabel}
                 </span>
               </div>
             </div>
@@ -606,9 +676,7 @@ export default function IssueDetail() {
       {/* Bottom actions bar */}
       <div style={{ padding: '0.85rem 1.5rem', background: 'var(--card)', borderTop: '1.5px solid var(--border)', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
         {[
-          { icon: '↑', label: 'Share' },
-          { icon: '↓', label: 'Download' },
-          { icon: '•••', label: 'More ▾' },
+          
         ].map((btn) => (
           <button
             key={btn.label}

@@ -3,9 +3,15 @@ import mongoose, { Schema, Document } from "mongoose";
 export interface IComplaint extends Document {
   phoneNumber: string;
   issueType: string;
+  description: string;
+  address: string;
+  latitude?: number;
+  longitude?: number;
   imageUrl: string;
-  severity: "low" | "medium" | "high";
+  severity: "low" | "medium" | "high" | "critical";
   status: "pending" | "complete";
+  department?: string;
+  problem?: string;
 }
 
 const ComplaintSchema = new Schema<IComplaint>(
@@ -20,6 +26,26 @@ const ComplaintSchema = new Schema<IComplaint>(
       required: true,
     },
 
+    description: {
+      type: String,
+      required: true,
+    },
+
+    address: {
+      type: String,
+      required: true,
+    },
+
+    latitude: {
+      type: Number,
+      required: false,
+    },
+
+    longitude: {
+      type: Number,
+      required: false,
+    },
+
     imageUrl: {
       type: String,
       required: true,
@@ -27,7 +53,17 @@ const ComplaintSchema = new Schema<IComplaint>(
 
     severity: {
       type: String,
-      enum: ["low", "medium", "high"],
+      enum: ["low", "medium", "high", "critical"],
+      required: false,
+    },
+
+    department: {
+      type: String,
+      required: false,
+    },
+
+    problem: {
+      type: String,
       required: false,
     },
 

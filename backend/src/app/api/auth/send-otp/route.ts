@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import twilio from "twilio";
-import { connectDB } from "@/lib/mongodb";
-import User from "@/models/User";
 
 const client = twilio(
   process.env.TWILIO_ACCOUNT_SID,
@@ -33,16 +31,24 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    await connectDB();
-
-    const user = await User.findOne({ mobileNumber });
-
-    if (!user) {
+    // Validate Indian 10-digit mobile number
+    if (!/^\d{10}$/.test(mobileNumber)) {
       return NextResponse.json(
-        { message: "Mobile number is not registered" },
-        { status: 404, headers: corsHeaders }
+        { message: "Please enter a valid 10-digit mobile number" },
+        { status: 400, headers: corsHeaders }
       );
     }
+
+    /*
+     * IMPORTANT:
+     * We intentionally DO NOT check MongoDB here.
+     *
+     * Any citizen can request an OTP, even if they have
+     * never used CivicSewa before.
+     *
+     * The citizen will be created/logged in after successful
+     * OTP verification.
+     */
 
     const phoneNumber = `+91${mobileNumber}`;
 

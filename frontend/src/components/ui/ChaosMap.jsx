@@ -1,5 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
-import { useApp } from '../../context/AppContext'
+
+// Point this at your Next.js API origin (adjust if you already have an env var for it elsewhere)
+const API_BASE = 'http://localhost:3100'
+const POLL_INTERVAL_MS = 20000
 
 /* ─────────────────────────────────────────────
    LOCATION HELPERS
@@ -235,7 +238,7 @@ function createHotspots(reports) {
   return hotspots
 }
 export default function ChaosMap() {
-  const { reports = [] } = useApp()
+  const [reports, setReports] = useState([])
 
   const mapRef = useRef(null)
   const mapInstanceRef = useRef(null)
@@ -243,6 +246,40 @@ export default function ChaosMap() {
 
   const [chaosMode, setChaosMode] = useState(true)
   const [mapReady, setMapReady] = useState(false)
+
+  /* ─────────────────────────────────────────
+     0. FETCH LIVE COMPLAINTS (poll every 20s)
+  ───────────────────────────────────────── */
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function fetchReports() {
+      try {
+        const res = await fetch(`${API_BASE}/api/complaints/map`, {
+          credentials: 'include',
+        })
+
+        if (!res.ok) return
+
+        const data = await res.json()
+
+        if (!cancelled) {
+          setReports(data.reports || [])
+        }
+      } catch (error) {
+        console.error('Failed to fetch live complaints:', error)
+      }
+    }
+
+    fetchReports()
+    const intervalId = setInterval(fetchReports, POLL_INTERVAL_MS)
+
+    return () => {
+      cancelled = true
+      clearInterval(intervalId)
+    }
+  }, [])
 
   // 🔥 Generate hotspots from GPS reports
   const hotspots = createHotspots(reports)
